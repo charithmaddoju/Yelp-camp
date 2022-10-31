@@ -5,6 +5,7 @@ const ExpressError = require('../utils/ExpressError')
 const Campground = require('../models/campground')
 const Review = require('../models/review')
 const {campgroundSchema,reviewSchema} = require('../schemas')
+const {isLoggedIn} = require('../middleware')
 
 const validateCampground = (req,res,next) => {
     
@@ -31,12 +32,11 @@ router.get('/', catchAsync(async (req,res) => {
     res.render('campgrounds/index',{campgrounds})
 }))
 
-router.get('/new', (req,res) => {
+router.get('/new', isLoggedIn ,(req,res) => {
     res.render('campgrounds/new')
-
 })
 
-router.post('/', validateCampground ,catchAsync(async (req,res,next) => {
+router.post('/', isLoggedIn ,validateCampground ,catchAsync(async (req,res,next) => {
     
     
     
@@ -48,7 +48,7 @@ router.post('/', validateCampground ,catchAsync(async (req,res,next) => {
     
 }))
 
-router.get('/:id', catchAsync(async (req,res) => {
+router.get('/:id', isLoggedIn ,catchAsync(async (req,res) => {
     const campground = await Campground.findById(req.params.id).populate('reviews')
     if(!campground){
         req.flash('error',"Cannot find that campground")
@@ -79,7 +79,6 @@ router.delete('/:id', catchAsync(async(req,res) => {
     req.flash('success',"Successfully deleted campground")
     res.redirect('/campgrounds')
 }))
-
 
 
 module.exports = router
