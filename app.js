@@ -20,7 +20,7 @@ const flash = require('connect-flash')
 const passport = require('passport')
 const localStrategy = require('passport-local')
 const User = require('./models/user')
-
+const MongoDBStore = require('connect-mongo')
 const userRoutes = require('./routes/users')
 const campgroundRoutes = require('./routes/campgrounds')
 const reviewRoutes = require('./routes/reviews')
@@ -29,8 +29,8 @@ const reviewRoutes = require('./routes/reviews')
 const session = require('express-session')
 
 
-
-mongoose.connect('mongodb://localhost:27017/yelp-camp')
+const dbUrl = process.env.DB_URL || 'mongodb://localhost:27017/yelp-camp'
+mongoose.connect(dbUrl)
     .then(() => {
         console.log("MONGO CONNECTION OPEN!!")
     })
@@ -50,15 +50,25 @@ app.set('views',path.join(__dirname,'views'))
 app.use(express.urlencoded({extended:true}))
 app.use(methodOverride('_method'))
 app.use(express.static(path.join(__dirname,'public')))
+
+const secret = process.env.SECRET || 'thisisnotasafesecretatall'
+
+
 const sessionConfig = {
-    secret: 'thisshouldbeabettersecret',
+    name: 'session',
+    secret: secret,
     resave:false,
     saveUninitialized:true,
     cookie:{
         httpOnly : true,
         expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
         maxAge: 1000 * 60 * 60 * 24 * 7
-    }
+    },
+    store: MongoDBStore.create({
+        mongoUrl: dbUrl,
+        secret: secret,
+        touchAfter: 24 * 60 * 60
+    })
 }
 app.use(session(sessionConfig))
 app.use(flash())
