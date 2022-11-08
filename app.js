@@ -81,6 +81,10 @@ app.use('/',userRoutes)
 app.use('/campgrounds/',campgroundRoutes)
 app.use('/campgrounds/:id/reviews',reviewRoutes)
 
+app.get('/', (req, res) => {
+    res.render('home')
+});
+
 app.get('/fakeUser',async(req,res) => {
     const user = new User(
         {email:'colt@gmail.com',username:'colt'})
